@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class TaskController extends Controller
 {
@@ -16,7 +18,9 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $tasks = $request->user()->tasks()->get();
-        return response()->json($tasks, 200);
+        return response()->json([
+            'data' => TaskResource::collection($tasks)
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -25,7 +29,12 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request)
     {
         $task = $request->user()->tasks()->create($request->validated());
-        return response()->json(['data' => $task], 201);
+
+        $task->refresh();
+
+        return response()->json([
+            'data' => new TaskResource($task)
+        ], Response::HTTP_CREATED);
     }
 
     /**
@@ -34,7 +43,9 @@ class TaskController extends Controller
     public function show(Task $task, Request $request)
     {
         abort_if($task->user_id !== $request->user()->id, 404);
-        return response()->json($task, 200);
+        return response()->json([
+            'data' => new TaskResource($task)
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -45,7 +56,9 @@ class TaskController extends Controller
         abort_if($task->user_id !== $request->user()->id, 404);
 
         $task->update($request->validated());
-        return response()->json($task, 200);
+        return response()->json([
+            'data' => new TaskResource($task)
+        ], Response::HTTP_OK);
     }
 
     /**
