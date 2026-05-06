@@ -17,10 +17,24 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
-        $tasks = $request->user()->tasks()->get();
-        return response()->json([
-            'data' => TaskResource::collection($tasks)
-        ], Response::HTTP_OK);
+        $query = $request->user()->tasks();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+
+        $allowedSorts = ['created_at', 'title', 'status'];
+
+        if (in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $direction);
+        }
+
+        $tasks = $query->paginate(3);
+
+        return TaskResource::collection($tasks);
     }
 
     /**
