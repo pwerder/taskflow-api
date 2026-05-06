@@ -24,8 +24,8 @@ class UpdateTaskRequest extends FormRequest
     {
         return [
             'title' => ['string', 'max:255'],
-            'description' => ['max:255', 'nullable'],
-            'status' => ['in:pending,doing,done']
+            'description' => ['max:255', 'nullable', 'string'],
+            'status' => ['sometimes', 'in:pending,doing,done']
         ];
     }
 }
