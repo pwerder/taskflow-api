@@ -12,7 +12,7 @@ class Task extends Model
     /** @use HasFactory<\Database\Factories\TaskFactory> */
     use HasFactory, HasApiTokens;
 
-    protected $table = [
+    protected $fillable = [
         'title',
         'description',
         'status'
