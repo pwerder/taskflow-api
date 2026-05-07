@@ -19,8 +19,10 @@ class TaskController extends Controller
     {
         $query = $request->user()->tasks();
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        $status = $request->get('status');
+
+        if ($status) {
+            $query->where('status', $status);
         }
 
         $sort = $request->get('sort', 'created_at');
@@ -56,10 +58,9 @@ class TaskController extends Controller
      */
     public function show(Task $task, Request $request)
     {
-        abort_if($task->user_id !== $request->user()->id, 404);
-        return response()->json([
-            'data' => new TaskResource($task)
-        ], Response::HTTP_OK);
+        $this->ensureTaskOwnership($task, $request);
+
+        return new TaskResource($task);
     }
 
     /**
@@ -67,12 +68,11 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->id, 404);
+        $this->ensureTaskOwnership($task, $request);
 
         $task->update($request->validated());
-        return response()->json([
-            'data' => new TaskResource($task)
-        ], Response::HTTP_OK);
+
+        return new TaskResource($task);
     }
 
     /**
@@ -80,10 +80,15 @@ class TaskController extends Controller
      */
     public function destroy(Task $task, Request $request)
     {
-        abort_if($task->user_id !== $request->user()->id, 404);
+        $this->ensureTaskOwnership($task, $request);
 
         $task->delete();
 
         return response()->noContent();
+    }
+
+    private function ensureTaskOwnership(Task $task, Request $request): void
+    {
+        abort_if($task->user_id !== $request->user()->id, 404);
     }
 }
