@@ -9,6 +9,7 @@ use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 class TaskController extends Controller
 {
@@ -48,6 +49,8 @@ class TaskController extends Controller
 
         $task->refresh();
 
+        Cache::forget('task_user_' . $request->user()->id);
+
         return response()->json([
             'data' => new TaskResource($task)
         ], Response::HTTP_CREATED);
@@ -60,7 +63,15 @@ class TaskController extends Controller
     {
         $this->ensureTaskOwnership($task, $request);
 
-        return new TaskResource($task);
+        $cacheKey = 'task_' . $task->id;
+
+        $task = Cache::remember(
+            $cacheKey,
+            60,
+            fn() => Task::find($task->id)?->toArray()
+        );
+
+        return TaskResource::make((object) $task);
     }
 
     /**
@@ -71,6 +82,8 @@ class TaskController extends Controller
         $this->ensureTaskOwnership($task, $request);
 
         $task->update($request->validated());
+
+        Cache::forget('task_user_' . $request->user()->id);
 
         return new TaskResource($task);
     }
@@ -83,6 +96,8 @@ class TaskController extends Controller
         $this->ensureTaskOwnership($task, $request);
 
         $task->delete();
+
+        Cache::forget('task_user_' . $request->user()->id);
 
         return response()->noContent();
     }
