@@ -3,38 +3,48 @@
 API REST de gerenciamento de tarefas construída com Laravel.
 
 ## Stack
-- Laravel
-- Sanctum
+- PHP 8.4
+- Laravel 13
 - MySQL
-- PHPUnit
+- Redis
+- Docker
+- Nginx
+- GitHub Actions
 
 ## Funcionalidades
-- Autenticação
+- Autenticação de usuários
 - CRUD de tarefas
-- Filtros
+- Filtros e ordenação
 - Paginação
-- Ordenação
+- Ownership validation
+- Cache com Redis
+- Queue/Jobs com Redis
+- Docker + Nginx
+- CI/CD com GitHub Actions
 - Teste automatizados
+
+## Arquitetura
+
+- Laravel API REST
+- PHP-FPM
+- Nginx reverse proxy
+- Redis para cache e filas
+- MySQL para persistência
 
 ## Como Rodar
 ```
-composer install
-```
+git clone ...
+cd taskflow-api
 
-```
 cp .env.example .env
-```
 
-```
-php artisan key:generate
-```
+docker compose up -d --build
 
-```
-php artisan migrate
-```
+docker compose exec app composer install
 
-```
-php artisan serve
+docker compose exec app php artisan key:generate
+
+docker compose exec app php artisan migrate
 ```
 
 ## Rotas Principais
